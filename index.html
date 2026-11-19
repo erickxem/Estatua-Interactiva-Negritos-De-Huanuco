@@ -66,6 +66,7 @@ footer{padding:44px 0 60px;border-top:1px solid var(--line);font-size:14px;color
 .rv{opacity:0;transform:translateY(22px);transition:.7s}.rv.on{opacity:1;transform:none}
 @media (max-width:760px){.hero .w,.two,.demo{grid-template-columns:1fr}.cab{max-height:430px}section{padding:56px 0}.uni img{height:44px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
+#mus{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:55;font:600 15px var(--bd);color:#1a1008;background:var(--gold);border:0;border-radius:99px;padding:12px 20px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.4)}#mus[hidden]{display:none}#mus.on{background:var(--red);color:#fff}
 </style>
 </head>
 <body>
@@ -251,6 +252,8 @@ footer{padding:44px 0 60px;border-top:1px solid var(--line);font-size:14px;color
 <p><b>Fuentes.</b> Ministerio de Cultura (2021, 2026); Castilla (1854); Pulgar Vidal (1935); Alarco (1975); León Huerta (2016); Robles Mendoza (2012); Palacios Jiménez (2017); Montes Garcia (2025); Marcellini Morales (2025); Gobierno Regional Huánuco (2021, 2024, 2026); Programa Nacional PAIS (2025); Tu Diario (2026); MINCETUR; Municipalidad Provincial de Huánuco; UNESCO (2003); Arduino, DFRobot y Texas Instruments.</p>
 <p>Basado en la monografía «Los Negritos de Huánuco» y en la propuesta del Proyecto 01 del grupo 01. Las vistas de la maqueta son ilustraciones conceptuales. Las fotografías de la tesis de Montes Garcia se reproducen con licencia CC BY-NC-SA 4.0. Las cifras económicas son estimaciones atribuidas a entidades locales.</p>
 </div></footer>
+<audio id="bgm" src="musica.mp3" loop preload="metadata"></audio>
+<button id="mus" type="button" hidden>♪ Música</button>
 <script>
 (function(){
 var bar=document.getElementById('bar');addEventListener('scroll',function(){var h=document.documentElement;bar.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'},{passive:true});
@@ -266,6 +269,9 @@ var st=document.getElementById('steps'),lcd=document.getElementById('lcd'),dd=do
 function pad(t){var n=16-t.length,l=Math.floor(n/2);return ' '.repeat(l)+t+' '.repeat(n-l)}
 function sel(i){Array.prototype.forEach.call(st.children,function(b,j){b.setAttribute('aria-selected',j===i)});lcd.textContent=pad(S[i][3])+'\n'+pad(S[i][4]);dd.innerHTML='<b>Contenido:</b> '+S[i][1]+'<br><b>Experiencia:</b> '+S[i][2]}
 S.forEach(function(s,i){var b=document.createElement('button');b.textContent=(i+1)+'. '+s[0];b.onclick=function(){sel(i)};st.appendChild(b)});sel(0);
+var a=document.getElementById('bgm'),m=document.getElementById('mus');
+a.volume=.5;a.addEventListener('loadedmetadata',function(){m.hidden=false});
+m.onclick=function(){if(a.paused){var p=a.play();if(p&&p.catch)p.catch(function(){});m.classList.add('on');m.textContent='⏸ Pausar música'}else{a.pause();m.classList.remove('on');m.textContent='♪ Música'}};
 })();
 </script>
 </body>
