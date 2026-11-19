@@ -259,6 +259,8 @@ footer{padding:44px 0 60px;border-top:1px solid var(--line);font-size:14px;color
 <p>Basado en la monografía «Los Negritos de Huánuco» y en la propuesta del Proyecto 01 del grupo 01. Las vistas de la maqueta son ilustraciones conceptuales. Las fotografías de la tesis de Montes Garcia se reproducen con licencia CC BY-NC-SA 4.0. Las cifras económicas son estimaciones atribuidas a entidades locales.</p>
 </div></footer>
 <audio id="bgm" src="musica.mp3" loop preload="metadata"></audio>
+<audio id="bgm2" src="musica2.mp3" preload="auto"></audio>
+<audio id="bgm3" src="musica3.mp3" preload="auto"></audio>
 <div id="mp"><button id="mus" type="button">♪ Música</button><span aria-hidden="true">🔊</span><input id="vol" type="range" min="0" max="100" value="50" aria-label="Volumen de la música"></div>
 <script>
 (function(){
@@ -325,9 +327,14 @@ el.addEventListener('pointermove',function(e){if(!dn)return;th-=(e.clientX-px)*.
 function rs(){var w=host.clientWidth,h=host.clientHeight;ren.setSize(w,h);cam.aspect=w/h;rd=w/h<1?250:175;cam.updateProjectionMatrix()}
 addEventListener('resize',rs);rs();
 var D=110,tgt=110,st='espera',armed=true,t0=0,sq=-1,S=document.getElementById('sdr'),V=document.getElementById('sdv'),X=document.getElementById('sst');
+var m2=document.getElementById('bgm2'),m3=document.getElementById('bgm3'),bg=document.getElementById('bgm'),vl=document.getElementById('vol'),miss={};
+function ap(on){var v=vl.value/100;m2.volume=m3.volume=v;bg.volume=on?v*.15:v}
+[m2,m3].forEach(function(m){m.addEventListener('error',function(){miss[m.id]=1});m.addEventListener('ended',function(){ap(false)})});
+vl.addEventListener('input',function(){ap(!m2.paused||!m3.paused)});
+function snd(w){m2.pause();m3.pause();var m=w==='musica'?m2:w==='relato'?m3:null;if(m){m.currentTime=0;var p=m.play();if(p&&p.catch)p.catch(function(){})}ap(!!m&&!miss[m.id])}
 var TXT={espera:'Reposo: la pantalla invita a pulsar el botón.',musica:'Suena el fragmento musical (hasta 25 s).',relato:'La narración tiene prioridad y la pantalla acompaña la voz.',bloq:'Visita terminada: aléjate a 80 cm para una nueva visita.'};
 var SEQ=[['NUESTRA HISTORIA','Origen virreinal'],['DEVOCION AL','NINO JESUS'],['GRACIAS POR','TU VISITA']];
-function go(s){st=s;t0=performance.now();sq=-1;X.innerHTML='<b>'+TXT[s]+'</b>';if(s==='musica')lcd('MUSICA','NEGRITOS HUANUCO');else if(s!=='relato')lcd('NEGRITOS HUANUCO','Pulsa el boton')}
+function go(s){st=s;t0=performance.now();sq=-1;snd(s);X.innerHTML='<b>'+TXT[s]+'</b>'+((s==='musica'&&miss.bgm2)?' (falta musica2.mp3)':(s==='relato'&&miss.bgm3)?' (falta musica3.mp3)':'');if(s==='musica')lcd('MUSICA','NEGRITOS HUANUCO');else if(s!=='relato')lcd('NEGRITOS HUANUCO','Pulsa el boton')}
 var pr=0;
 document.getElementById('bpush').onclick=function(){if(st!=='relato')go('relato');pr=performance.now()};
 document.getElementById('bnear').onclick=function(){tgt=35};
@@ -338,7 +345,7 @@ if(D>=80&&st==='bloq'){armed=true;go('espera')}
 if(st==='espera'&&armed&&D<=60)go('musica');
 if(st==='musica'&&D>=80)go('espera');
 if(st==='musica'&&n-t0>25000){armed=false;go('bloq')}
-if(st==='relato'){var i=Math.floor((n-t0)/4000);if(i>=3){armed=false;go('bloq')}else if(i!==sq){sq=i;lcd(SEQ[i][0],SEQ[i][1])}}}
+if(st==='relato'){var du=(m3.duration>0&&isFinite(m3.duration))?m3.duration*1000:12000,i=Math.floor((n-t0)/(du/3));if(i>=3){armed=false;go('bloq')}else if(i!==sq){sq=i;lcd(SEQ[i][0],SEQ[i][1])}}}
 go('espera');
 var vs=true,last=performance.now();
 try{new IntersectionObserver(function(e){vs=e[0].isIntersecting}).observe(host)}catch(e){}
