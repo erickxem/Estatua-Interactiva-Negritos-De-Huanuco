@@ -66,7 +66,8 @@ footer{padding:44px 0 60px;border-top:1px solid var(--line);font-size:14px;color
 .rv{opacity:0;transform:translateY(22px);transition:.7s}.rv.on{opacity:1;transform:none}
 @media (max-width:760px){.hero .w,.two,.demo{grid-template-columns:1fr}.cab{max-height:430px}section{padding:56px 0}.uni img{height:44px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
-#mus{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:55;font:600 15px var(--bd);color:#1a1008;background:var(--gold);border:0;border-radius:99px;padding:12px 20px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.4)}#mus[hidden]{display:none}#mus.on{background:var(--red);color:#fff}
+#mp{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:55;display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--line);border-radius:99px;padding:6px 14px 6px 6px;box-shadow:0 8px 24px rgba(0,0,0,.4)}#mus{font:600 15px var(--bd);color:#1a1008;background:var(--gold);border:0;border-radius:99px;padding:10px 18px;cursor:pointer;white-space:nowrap}#mus.on{background:var(--red);color:#fff}#vol{width:86px;accent-color:var(--gold)}
+.sim3{background:var(--s2);border:1px solid var(--line);border-radius:22px;overflow:hidden;margin-top:24px}#sim3d{height:clamp(340px,56vw,520px);cursor:grab;touch-action:pan-y;overflow:hidden;background:radial-gradient(70% 70% at 50% 30%,color-mix(in srgb,var(--gold) 16%,transparent),transparent)}.ctl{padding:20px 24px 24px}.ctl label{display:flex;justify-content:space-between;font-weight:600}.ctl input[type=range]{width:100%;accent-color:var(--red)}button.b{background:transparent;font:600 16px var(--bd);cursor:pointer}button.b.p{background:var(--gold)}
 </style>
 </head>
 <body>
@@ -209,6 +210,11 @@ footer{padding:44px 0 60px;border-top:1px solid var(--line);font-size:14px;color
 <div class="steps" role="tablist" id="steps"></div>
 <div><div class="lcd" id="lcd"></div><div class="dd" id="dd"></div></div>
 </div>
+<h2 style="font-size:32px;margin-top:56px">Simulador 3D</h2>
+<p class="lead sm">Arrastra para girar la maqueta. Mueve al visitante: a 60 cm o menos suena la música; tras terminar la visita, hay que alejarse a 80 cm para una nueva. El botón rojo da prioridad a la narración.</p>
+<div class="sim3"><div id="sim3d"></div><div class="ctl"><label>Distancia del visitante <b id="sdv">110 cm</b></label><input id="sdr" type="range" min="20" max="140" value="110" aria-label="Distancia del visitante">
+<div class="btns" style="margin-top:12px"><button class="b" id="bnear" type="button">Acercarme</button><button class="b" id="bfar" type="button">Alejarme</button><button class="b p" id="bpush" type="button">Pulsar botón</button></div>
+<div class="dd" id="sst"></div></div></div>
 <div class="two" style="margin-top:50px;align-items:start">
 <div class="sc" style="margin-top:0"><table><tr><th>Componente</th><th>Uso</th></tr>
 <tr><td>Arduino Uno R3</td><td>Controla sensor, pulsador y pantalla</td></tr>
@@ -253,7 +259,7 @@ footer{padding:44px 0 60px;border-top:1px solid var(--line);font-size:14px;color
 <p>Basado en la monografía «Los Negritos de Huánuco» y en la propuesta del Proyecto 01 del grupo 01. Las vistas de la maqueta son ilustraciones conceptuales. Las fotografías de la tesis de Montes Garcia se reproducen con licencia CC BY-NC-SA 4.0. Las cifras económicas son estimaciones atribuidas a entidades locales.</p>
 </div></footer>
 <audio id="bgm" src="musica.mp3" loop preload="metadata"></audio>
-<button id="mus" type="button">♪ Música</button>
+<div id="mp"><button id="mus" type="button">♪ Música</button><span aria-hidden="true">🔊</span><input id="vol" type="range" min="0" max="100" value="50" aria-label="Volumen de la música"></div>
 <script>
 (function(){
 var bar=document.getElementById('bar');addEventListener('scroll',function(){var h=document.documentElement;bar.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'},{passive:true});
@@ -270,8 +276,81 @@ function pad(t){var n=16-t.length,l=Math.floor(n/2);return ' '.repeat(l)+t+' '.r
 function sel(i){Array.prototype.forEach.call(st.children,function(b,j){b.setAttribute('aria-selected',j===i)});lcd.textContent=pad(S[i][3])+'\n'+pad(S[i][4]);dd.innerHTML='<b>Contenido:</b> '+S[i][1]+'<br><b>Experiencia:</b> '+S[i][2]}
 S.forEach(function(s,i){var b=document.createElement('button');b.textContent=(i+1)+'. '+s[0];b.onclick=function(){sel(i)};st.appendChild(b)});sel(0);
 var a=document.getElementById('bgm'),m=document.getElementById('mus');
-a.volume=.5;var bad=false;a.addEventListener('error',function(){bad=true;m.textContent='Falta musica.mp3'});a.addEventListener('loadedmetadata',function(){bad=false;m.textContent='♪ Música'});
-m.onclick=function(){if(bad){m.textContent='Sube musica.mp3 al repositorio';return}if(a.paused){var p=a.play();if(p&&p.catch)p.catch(function(){});m.classList.add('on');m.textContent='⏸ Pausar música'}else{a.pause();m.classList.remove('on');m.textContent='♪ Música'}};
+a.volume=.5;document.getElementById('vol').oninput=function(){a.volume=this.value/100};var bad=false;a.addEventListener('error',function(){bad=true;m.textContent='Falta musica.mp3'});a.addEventListener('loadedmetadata',function(){bad=false;m.textContent='♪ Música'});
+m.onclick=function(){if(bad){m.textContent='Sube musica.mp3';return}if(a.paused){var p=a.play();if(p&&p.catch)p.catch(function(){});m.classList.add('on');m.textContent='⏸ Pausar'}else{a.pause();m.classList.remove('on');m.textContent='♪ Música'}};
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>(function(){
+var host=document.getElementById('sim3d');if(!host)return;
+try{
+if(!window.THREE)throw 0;
+var T=THREE,ren=new T.WebGLRenderer({antialias:true,alpha:true}),sc=new T.Scene(),cam=new T.PerspectiveCamera(40,1,1,1000);
+ren.setPixelRatio(Math.min(devicePixelRatio||1,2));host.appendChild(ren.domElement);ren.domElement.style.display='block';
+sc.add(new T.AmbientLight(0xffffff,.85));var dl=new T.DirectionalLight(0xffffff,.8);dl.position.set(80,140,120);sc.add(dl);
+function M(c,o){o=o||{};o.color=c;return new T.MeshStandardMaterial(o)}
+function add(g,m,x,y,z,p){var s=new T.Mesh(g,m);s.position.set(x,y,z);(p||sc).add(s);return s}
+var fl=add(new T.CircleGeometry(150,64),M(0x241815,{roughness:1}),0,0,60);fl.rotation.x=-Math.PI/2;
+var gr=new T.GridHelper(200,20,0x8a6a2a,0x4a3a26);gr.position.set(0,.05,60);sc.add(gr);
+var wood=M(0xcf9f60,{roughness:.8});
+add(new T.BoxGeometry(30,10,30),wood,0,5,0);add(new T.BoxGeometry(31,1,31),M(0xb88748),0,10.5,0);
+var blk=M(0x111111,{roughness:.35}),red=M(0xc8202f,{roughness:.5}),gold=M(0xe0b04a,{metalness:.7,roughness:.3});
+add(new T.CylinderGeometry(10,10.5,22,40),blk,0,22,0);
+add(new T.CylinderGeometry(16,16,2.4,48),red,0,34.2,0);add(new T.CylinderGeometry(6.5,8,4,32),red,0,36.4,0);
+var tr=add(new T.TorusGeometry(15.2,.35,8,60),gold,0,35.4,0);tr.rotation.x=Math.PI/2;
+[0x3c9d5d,0xf4f0e6,0xe8772e,0x6a3fa0,0x2f7fc1,0xe86aa0,0xe0b04a].forEach(function(c,i){var f=add(new T.SphereGeometry(1,20,14),M(c),Math.sin(i*.5)*1.2,41+i*3.1,-i*.5);f.scale.set(3,4,1);f.rotation.z=(i-3)*.09});
+[-4,4].forEach(function(x){add(new T.SphereGeometry(2,20,16),M(0xffffff),x,27,9.1);add(new T.SphereGeometry(1.05,16,12),M(0x2f9bd6),x,27,10.9)});
+add(new T.SphereGeometry(1.3,16,12),red,0,23.2,9.9);add(new T.BoxGeometry(6,1.7,1),red,0,20.4,9.8);
+for(var r=0;r<6;r++)for(var k=0;k<7-r;k++){var bx=(k-(6-r)/2)*1.15;add(new T.SphereGeometry(.55,10,8),gold,bx,18.2-r*1.5,Math.sqrt(100-bx*bx)+.1)}
+add(new T.BoxGeometry(4.4,8.4,1),M(0x1d6ea8),-10,5,15.4);
+[3.3,6.7].forEach(function(y){var c=add(new T.CylinderGeometry(1.4,1.4,1.2,24),M(0xc8c8c8,{metalness:.6}),-10,y,16.1);c.rotation.x=Math.PI/2});
+add(new T.BoxGeometry(12.6,5.6,.6),M(0x1a1a1a),0,5,15.3);
+var cv=document.createElement('canvas');cv.width=320;cv.height=120;var cx=cv.getContext('2d'),tx=new T.CanvasTexture(cv);
+function lcd(a,b){cx.fillStyle='#a3c63f';cx.fillRect(0,0,320,120);cx.fillStyle='#1f2a08';cx.font='bold 30px monospace';cx.textAlign='center';cx.fillText(a,160,50);cx.fillText(b,160,98);tx.needsUpdate=true}
+add(new T.PlaneGeometry(11,4.2),new T.MeshBasicMaterial({map:tx}),0,5,15.62);
+var bt=add(new T.CylinderGeometry(1.7,1.7,1.4,24),M(0xe21b2a),10,7.5,15.9);bt.rotation.x=Math.PI/2;
+var sp=add(new T.CircleGeometry(3.4,24),M(0x151515),15.05,5,0);sp.rotation.y=Math.PI/2;
+var vis=new T.Group();sc.add(vis);
+add(new T.CylinderGeometry(6,7.5,30,20),M(0x3d6ea8,{transparent:true,opacity:.82}),0,15,0,vis);add(new T.SphereGeometry(5.5,20,16),M(0xe0a97d,{transparent:true,opacity:.9}),0,35.5,0,vis);
+var cg=new T.ConeGeometry(Math.tan(.2618),1,24,1,true);cg.translate(0,-.5,0);
+var cm=new T.MeshBasicMaterial({color:0x3c9d5d,transparent:true,opacity:.14,side:T.DoubleSide,depthWrite:false});
+var cone=new T.Mesh(cg,cm);cone.rotation.x=-Math.PI/2;cone.position.set(-10,5,16.1);sc.add(cone);
+function mark(d,c,t){add(new T.BoxGeometry(44,.2,.6),M(c),-10,.2,16.1+d);var k=document.createElement('canvas');k.width=128;k.height=48;var g=k.getContext('2d');g.fillStyle='#'+('000000'+c.toString(16)).slice(-6);g.font='bold 32px sans-serif';g.textAlign='center';g.fillText(t,64,34);var s=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(k),transparent:true}));s.scale.set(16,6,1);s.position.set(-38,3,16.1+d);sc.add(s)}
+mark(60,0x3c9d5d,'60 cm');mark(80,0xe8772e,'80 cm');
+var th=.8,ph=1.15,rd=175,tg=new T.Vector3(-4,18,58);
+var dn=false,px=0,py=0,el=ren.domElement;
+el.addEventListener('pointerdown',function(e){dn=true;px=e.clientX;py=e.clientY;try{el.setPointerCapture(e.pointerId)}catch(x){}});
+el.addEventListener('pointermove',function(e){if(!dn)return;th-=(e.clientX-px)*.008;ph=Math.max(.3,Math.min(1.5,ph-(e.clientY-py)*.006));px=e.clientX;py=e.clientY});
+['pointerup','pointercancel'].forEach(function(n){el.addEventListener(n,function(){dn=false})});
+function rs(){var w=host.clientWidth,h=host.clientHeight;ren.setSize(w,h);cam.aspect=w/h;rd=w/h<1?250:175;cam.updateProjectionMatrix()}
+addEventListener('resize',rs);rs();
+var D=110,tgt=110,st='espera',armed=true,t0=0,sq=-1,S=document.getElementById('sdr'),V=document.getElementById('sdv'),X=document.getElementById('sst');
+var TXT={espera:'Reposo: la pantalla invita a pulsar el botón.',musica:'Suena el fragmento musical (hasta 25 s).',relato:'La narración tiene prioridad y la pantalla acompaña la voz.',bloq:'Visita terminada: aléjate a 80 cm para una nueva visita.'};
+var SEQ=[['NUESTRA HISTORIA','Origen virreinal'],['DEVOCION AL','NINO JESUS'],['GRACIAS POR','TU VISITA']];
+function go(s){st=s;t0=performance.now();sq=-1;X.innerHTML='<b>'+TXT[s]+'</b>';if(s==='musica')lcd('MUSICA','NEGRITOS HUANUCO');else if(s!=='relato')lcd('NEGRITOS HUANUCO','Pulsa el boton')}
+var pr=0;
+document.getElementById('bpush').onclick=function(){if(st!=='relato')go('relato');pr=performance.now()};
+document.getElementById('bnear').onclick=function(){tgt=35};
+document.getElementById('bfar').onclick=function(){tgt=125};
+S.oninput=function(){D=tgt=+S.value};
+function logic(n){
+if(D>=80&&st==='bloq'){armed=true;go('espera')}
+if(st==='espera'&&armed&&D<=60)go('musica');
+if(st==='musica'&&D>=80)go('espera');
+if(st==='musica'&&n-t0>25000){armed=false;go('bloq')}
+if(st==='relato'){var i=Math.floor((n-t0)/4000);if(i>=3){armed=false;go('bloq')}else if(i!==sq){sq=i;lcd(SEQ[i][0],SEQ[i][1])}}}
+go('espera');
+var vs=true,last=performance.now();
+try{new IntersectionObserver(function(e){vs=e[0].isIntersecting}).observe(host)}catch(e){}
+(function loop(n){requestAnimationFrame(loop);if(!vs)return;var dt=Math.min((n-last)/1000,.1);last=n;
+if(Math.abs(tgt-D)>.5){D+=Math.sign(tgt-D)*Math.min(Math.abs(tgt-D),38*dt)}
+S.value=Math.round(D);V.textContent=Math.round(D)+' cm';logic(n);
+vis.position.set(-10,0,16.1+D+6);cone.scale.setScalar(D);
+cm.color.setHex(D<=60?0x3c9d5d:0xe8772e);cm.opacity=.1+.05*Math.sin(n/220);
+bt.position.z=(n-pr<220)?15.3:15.9;
+cam.position.set(tg.x+rd*Math.sin(ph)*Math.sin(th),tg.y+rd*Math.cos(ph),tg.z+rd*Math.sin(ph)*Math.cos(th));cam.lookAt(tg);
+ren.render(sc,cam)})(last);
+}catch(e){host.innerHTML='<p style="padding:24px;color:var(--mut)">No se pudo iniciar el modo 3D en este navegador.</p>'}
 })();
 </script>
 </body>
